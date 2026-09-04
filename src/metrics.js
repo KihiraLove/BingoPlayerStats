@@ -5,7 +5,8 @@ import {
   normalizeName,
   roundMetric,
   selectSpecialProfile,
-  toNumber
+  toNumber,
+  xpToLevel
 } from "./utils.js";
 
 export const EXPORT_SUMMARY_COLUMNS = [
@@ -151,14 +152,17 @@ function buildTempleRaw(stats) {
     const level = templeValue(stats, names.flatMap((name) => [name + "_level", name + " level"]));
     const xp = templeValue(stats, names);
 
-    if (level !== undefined) {
+    if (xp !== undefined) {
+      const xpNumber = toNumber(xp, 0);
+      raw[skillLabel(skill) + " XP"] = xpNumber;
+      raw[skillLabel(skill) + " Level"] = level !== undefined
+        ? toNumber(level, 0)
+        : xpToLevel(xpNumber);
+      seen.add(normalizeName(names[0]));
+      seen.add(normalizeName(names[0] + "_level"));
+    } else if (level !== undefined) {
       raw[skillLabel(skill) + " Level"] = toNumber(level, 0);
       seen.add(normalizeName(names[0] + "_level"));
-    }
-
-    if (xp !== undefined) {
-      raw[skillLabel(skill) + " XP"] = toNumber(xp, 0);
-      seen.add(normalizeName(names[0]));
     }
   }
 
@@ -209,8 +213,11 @@ function templeTotalLevel(stats) {
       ? ["Runecrafting", "Runecraft"]
       : [skillLabel(skill)];
 
-    const value = templeValue(stats, names.flatMap((name) => [name + "_level", name + " level"]));
-    total += Math.max(0, toNumber(value, 0));
+    const level = templeValue(stats, names.flatMap((name) => [name + "_level", name + " level"]));
+    const xp = templeValue(stats, names);
+    total += level !== undefined
+      ? Math.max(0, toNumber(level, 0))
+      : xpToLevel(xp);
   }
   return total;
 }
