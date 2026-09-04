@@ -19,6 +19,7 @@ export const EXPORT_SUMMARY_COLUMNS = [
 
 export const VIEW_COLUMNS = [
   ...EXPORT_SUMMARY_COLUMNS,
+  "Build",
   "Source",
   "Total Level",
   "Total XP",
@@ -235,21 +236,30 @@ export function computeHiscoreResult(username, hiscore, classification) {
   const ehp = roundMetric(algorithms.main.calculateEHP(experienceMap));
   const ehb = roundMetric(algorithms.main.calculateEHB(killcountMap));
 
-  const specialProfile = selectSpecialProfile(classification);
-  const specialAlgorithm = specialProfile ? algorithms[specialProfile] : null;
+  const specialEhpProfile = selectSpecialProfile(classification);
+  const specialEhpAlgorithm = specialEhpProfile ? algorithms[specialEhpProfile] : null;
 
-  const specialEhp = specialAlgorithm
-    ? roundMetric(specialAlgorithm.calculateEHP(experienceMap))
+  const specialEhbProfile = classification.build === "def1"
+    ? "def1"
+    : classification.mode === "ultimate"
+      ? "ultimate"
+      : ["ironman", "hardcore", "gim"].includes(classification.mode)
+        ? "ironman"
+        : null;
+  const specialEhbAlgorithm = specialEhbProfile ? algorithms[specialEhbProfile] : null;
+
+  const specialEhp = specialEhpAlgorithm
+    ? roundMetric(specialEhpAlgorithm.calculateEHP(experienceMap))
     : 0;
 
-  const specialEhb = specialAlgorithm && specialAlgorithm.bossMetas.length > 0
-    ? roundMetric(specialAlgorithm.calculateEHB(killcountMap))
+  const specialEhb = specialEhbAlgorithm
+    ? roundMetric(specialEhbAlgorithm.calculateEHB(killcountMap))
     : 0;
 
-  const buildSuffix = classification.build === "lvl3"
-    ? " (Level 3)"
+  const build = classification.build === "lvl3"
+    ? "Level 3"
     : classification.build === "def1"
-      ? " (1 Defence)"
+      ? "1 Defence"
       : "";
 
   const status = classification.warning || "Fetched from Jagex HiScores; efficiency calculated locally.";
@@ -257,11 +267,12 @@ export function computeHiscoreResult(username, hiscore, classification) {
   return {
     summary: {
       Username: username,
-      Gamemode: classification.modeLabel + buildSuffix,
+      Gamemode: classification.modeLabel,
       EHP: ehp,
       "Special EHP": specialEhp,
       EHB: ehb,
       "Special EHB": specialEhb,
+      Build: build,
       Source: "Jagex HiScores",
       "Total Level": getHiscoreTotalLevel(hiscore),
       "Total XP": getHiscoreTotalXp(hiscore),
@@ -289,6 +300,7 @@ export function computeTempleResult(requestedUsername, fallback) {
 
   const specialEhp = firstNonZero(lvl3Ehp, oneDefEhp, uimEhp, gimEhp, imEhp);
   const specialEhb = firstNonZero(oneDefEhb, uimEhb, imEhb);
+  const build = lvl3Ehp !== 0 ? "Level 3" : oneDefEhp !== 0 ? "1 Defence" : "";
 
   const statusParts = [
     "Jagex HiScores lookup failed; using TempleOSRS.",
@@ -303,6 +315,7 @@ export function computeTempleResult(requestedUsername, fallback) {
       "Special EHP": specialEhp,
       EHB: ehb,
       "Special EHB": specialEhb,
+      Build: build,
       Source: "TempleOSRS",
       "Total Level": templeTotalLevel(stats),
       "Total XP": templeTotalXp(stats),
@@ -324,6 +337,7 @@ export function makeErrorResult(username, error) {
       "Special EHP": "",
       EHB: "",
       "Special EHB": "",
+      Build: "",
       Source: "",
       "Total Level": "",
       "Total XP": "",
