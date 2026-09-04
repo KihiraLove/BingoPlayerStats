@@ -27,7 +27,6 @@ const els = {
   playerCount: document.querySelector("#player-count"),
   fetchButton: document.querySelector("#fetch-button"),
   clearButton: document.querySelector("#clear-button"),
-  resolveGim: document.querySelector("#resolve-gim"),
   customizeEnabled: document.querySelector("#customize-enabled"),
   customOptions: document.querySelector("#custom-options"),
   statGroups: document.querySelector("#stat-groups"),
@@ -211,7 +210,6 @@ function currentPreferences() {
     v: CONFIG_VERSION,
     c: els.customizeEnabled.checked ? 1 : 0,
     s: els.useSpecial.checked ? 1 : 0,
-    g: els.resolveGim.checked ? 1 : 0,
     b: SELECTABLE_STAT_COLUMNS.map((column) => checked.has(column) ? "1" : "0").join("")
   };
 }
@@ -221,7 +219,6 @@ function applyPreferences(preferences) {
 
   els.customizeEnabled.checked = preferences.c === 1;
   els.useSpecial.checked = preferences.s !== 0;
-  els.resolveGim.checked = preferences.g !== 0;
 
   if (typeof preferences.b === "string") {
     const inputs = new Map(
@@ -284,7 +281,7 @@ async function lookupPlayer(username) {
     const classification = await classifyFromHiscores(
       username,
       hiscore,
-      els.resolveGim.checked
+      true
     );
 
     return computeHiscoreResult(username, hiscore, classification);
@@ -456,7 +453,6 @@ async function handleFetch() {
   state.results = new Array(usernames.length);
   els.fetchButton.disabled = true;
   els.clearButton.disabled = true;
-  els.resolveGim.disabled = true;
   els.resultsPanel.hidden = false;
   setNotice("");
   setProgress(0, usernames.length, "starting");
@@ -494,7 +490,6 @@ async function handleFetch() {
     state.running = false;
     els.fetchButton.disabled = false;
     els.clearButton.disabled = false;
-    els.resolveGim.disabled = false;
   }
 }
 
@@ -522,7 +517,6 @@ els.clearButton.addEventListener("click", () => {
 
 els.customizeEnabled.addEventListener("change", handlePreferenceChange);
 els.useSpecial.addEventListener("change", handlePreferenceChange);
-els.resolveGim.addEventListener("change", persistPreferences);
 els.statGroups.addEventListener("change", (event) => {
   if (event.target instanceof HTMLInputElement && event.target.dataset.statColumn) {
     persistPreferences();
