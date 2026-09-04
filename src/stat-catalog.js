@@ -123,6 +123,7 @@ const NO_SUFFIX_KEYS = new Set([
   "rifts_closed",
   "colosseum_glory",
   "collections_logged",
+  "soul_wars_zeal",
   "lunar_chests",
   "barrows_chests"
 ]);
@@ -155,11 +156,20 @@ const SKILL_XP_COLUMNS = REAL_SKILLS.map((skill) => skillLabel(skill) + " XP");
 const BOSS_COLUMNS = HISCORE_BOSSES.map(activityColumnName).filter(Boolean);
 const ACTIVITY_COLUMNS = HISCORE_ACTIVITIES.map(activityColumnName).filter(Boolean);
 
+export const SKILL_STAT_ROWS = REAL_SKILLS.map((skill) => ({
+  label: skillLabel(skill),
+  levelColumn: skillLabel(skill) + " Level",
+  xpColumn: skillLabel(skill) + " XP"
+}));
+
 export const STAT_GROUPS = [
-  { id: "skills", label: "Skills", columns: SKILL_LEVEL_COLUMNS },
-  { id: "skill-xp", label: "Skill XP", columns: SKILL_XP_COLUMNS },
   { id: "bosses", label: "Bosses", columns: BOSS_COLUMNS },
   { id: "activities", label: "Activities", columns: ACTIVITY_COLUMNS }
 ];
 
-export const SELECTABLE_STAT_COLUMNS = STAT_GROUPS.flatMap((group) => group.columns);
+export const SELECTABLE_STAT_COLUMNS = [
+  ...SKILL_LEVEL_COLUMNS,
+  ...SKILL_XP_COLUMNS,
+  ...BOSS_COLUMNS,
+  ...ACTIVITY_COLUMNS
+];

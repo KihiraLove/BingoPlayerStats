@@ -202,6 +202,34 @@ textarea:focus {
   text-transform: uppercase;
 }
 
+.skill-stat-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 6px 16px;
+  max-height: 330px;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.skill-stat-row {
+  display: grid;
+  grid-template-columns: minmax(110px, 1fr) auto auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 28px;
+}
+
+.skill-stat-name {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.skill-stat-checkbox {
+  width: auto;
+  margin: 0;
+  font-size: 0.8rem;
+}
+
 .stat-options {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
@@ -401,6 +429,10 @@ footer p { margin: 0; }
   background: #1b1914;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
   padding: 16px 18px;
+}
+
+.cookie-banner[hidden] {
+  display: none !important;
 }
 
 .cookie-banner strong {

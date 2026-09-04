@@ -105,7 +105,7 @@ test("activity headings use requested score/KC semantics", () => {
   assert.equal(activityColumnName("Lunar Chests"), "Lunar Chests");
   assert.equal(activityColumnName("Barrows Chests"), "Barrows Chests");
   assert.equal(activityColumnName("Zulrah"), "Zulrah KC");
-  assert.equal(activityColumnName("Soul Wars Zeal"), "Soul Wars Zeal KC");
+  assert.equal(activityColumnName("Soul Wars Zeal"), "Soul Wars Zeal");
 });
 
 test("league and grid points are omitted", () => {

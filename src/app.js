@@ -13,6 +13,7 @@ import {
 } from "./metrics.js";
 import {
   SELECTABLE_STAT_COLUMNS,
+  SKILL_STAT_ROWS,
   STAT_GROUPS
 } from "./stat-catalog.js";
 import { parseUsernames } from "./utils.js";
@@ -75,8 +76,53 @@ function setProgress(done, total, current = "") {
     : done + "/" + total + " complete" + (current ? " — " + current : "");
 }
 
+function makeStatCheckbox(column, text, className = "checkbox stat-option") {
+  const label = document.createElement("label");
+  label.className = className;
+
+  const input = document.createElement("input");
+  input.type = "checkbox";
+  input.checked = true;
+  input.dataset.statColumn = column;
+
+  const caption = document.createElement("span");
+  caption.textContent = text;
+
+  label.append(input, caption);
+  return label;
+}
+
 function renderStatOptions() {
   els.statGroups.replaceChildren();
+
+  const skillsSection = document.createElement("section");
+  skillsSection.className = "stat-group skills-group";
+
+  const skillsHeading = document.createElement("h3");
+  skillsHeading.textContent = "Skills";
+  skillsSection.appendChild(skillsHeading);
+
+  const skillOptions = document.createElement("div");
+  skillOptions.className = "skill-stat-options";
+
+  for (const skill of SKILL_STAT_ROWS) {
+    const row = document.createElement("div");
+    row.className = "skill-stat-row";
+
+    const name = document.createElement("span");
+    name.className = "skill-stat-name";
+    name.textContent = skill.label;
+
+    row.append(
+      name,
+      makeStatCheckbox(skill.levelColumn, "Level", "checkbox skill-stat-checkbox"),
+      makeStatCheckbox(skill.xpColumn, "XP", "checkbox skill-stat-checkbox")
+    );
+    skillOptions.appendChild(row);
+  }
+
+  skillsSection.appendChild(skillOptions);
+  els.statGroups.appendChild(skillsSection);
 
   for (const group of STAT_GROUPS) {
     const section = document.createElement("section");
@@ -90,19 +136,10 @@ function renderStatOptions() {
     options.className = "stat-options";
 
     for (const column of group.columns) {
-      const label = document.createElement("label");
-      label.className = "checkbox stat-option";
-
-      const input = document.createElement("input");
-      input.type = "checkbox";
-      input.checked = true;
-      input.dataset.statColumn = column;
-
-      const text = document.createElement("span");
-      text.textContent = column;
-
-      label.append(input, text);
-      options.appendChild(label);
+      const displayText = group.id === "bosses"
+        ? column.replace(/ KC$/, "")
+        : column;
+      options.appendChild(makeStatCheckbox(column, displayText));
     }
 
     section.appendChild(options);
