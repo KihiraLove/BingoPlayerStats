@@ -8,10 +8,19 @@ import {
   computeTempleResult,
   EXPORT_SUMMARY_COLUMNS,
   makeErrorResult,
-  rawColumnOrder,
+  outputValue,
   VIEW_COLUMNS
 } from "./metrics.js";
+import {
+  SELECTABLE_STAT_COLUMNS,
+  STAT_GROUPS
+} from "./stat-catalog.js";
 import { parseUsernames } from "./utils.js";
+
+const CONSENT_COOKIE = "bps_cookie_consent";
+const CONFIG_COOKIE = "bps_output_config";
+const CONFIG_VERSION = 1;
+const COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 
 const els = {
   usernames: document.querySelector("#usernames"),
@@ -19,23 +28,31 @@ const els = {
   fetchButton: document.querySelector("#fetch-button"),
   clearButton: document.querySelector("#clear-button"),
   resolveGim: document.querySelector("#resolve-gim"),
+  customizeEnabled: document.querySelector("#customize-enabled"),
+  customOptions: document.querySelector("#custom-options"),
+  statGroups: document.querySelector("#stat-groups"),
+  useSpecial: document.querySelector("#use-special"),
   progressWrap: document.querySelector("#progress-wrap"),
   progressBar: document.querySelector("#progress-bar"),
   progressText: document.querySelector("#progress-text"),
   notice: document.querySelector("#notice"),
   resultsPanel: document.querySelector("#results-panel"),
   resultSummary: document.querySelector("#result-summary"),
-  showRaw: document.querySelector("#show-raw"),
   table: document.querySelector("#results-table"),
   copySummary: document.querySelector("#copy-summary"),
   copyAll: document.querySelector("#copy-all"),
   downloadSummary: document.querySelector("#download-summary"),
-  downloadAll: document.querySelector("#download-all")
+  downloadAll: document.querySelector("#download-all"),
+  cookieBanner: document.querySelector("#cookie-consent"),
+  cookieAccept: document.querySelector("#cookie-accept"),
+  cookieDecline: document.querySelector("#cookie-decline"),
+  cookieSettings: document.querySelector("#cookie-settings")
 };
 
 const state = {
   results: [],
-  running: false
+  running: false,
+  cookieConsent: null
 };
 
 function setNotice(message = "", level = "info") {
@@ -56,6 +73,157 @@ function setProgress(done, total, current = "") {
   els.progressText.textContent = total === 0
     ? ""
     : done + "/" + total + " complete" + (current ? " — " + current : "");
+}
+
+function renderStatOptions() {
+  els.statGroups.replaceChildren();
+
+  for (const group of STAT_GROUPS) {
+    const section = document.createElement("section");
+    section.className = "stat-group";
+
+    const heading = document.createElement("h3");
+    heading.textContent = group.label;
+    section.appendChild(heading);
+
+    const options = document.createElement("div");
+    options.className = "stat-options";
+
+    for (const column of group.columns) {
+      const label = document.createElement("label");
+      label.className = "checkbox stat-option";
+
+      const input = document.createElement("input");
+      input.type = "checkbox";
+      input.checked = true;
+      input.dataset.statColumn = column;
+
+      const text = document.createElement("span");
+      text.textContent = column;
+
+      label.append(input, text);
+      options.appendChild(label);
+    }
+
+    section.appendChild(options);
+    els.statGroups.appendChild(section);
+  }
+}
+
+function selectedStatColumns() {
+  const selected = new Set(
+    Array.from(els.statGroups.querySelectorAll("input[data-stat-column]:checked"))
+      .map((input) => input.dataset.statColumn)
+  );
+
+  return SELECTABLE_STAT_COLUMNS.filter((column) => selected.has(column));
+}
+
+function displayedColumns() {
+  if (!els.customizeEnabled.checked) return VIEW_COLUMNS;
+  return [...VIEW_COLUMNS, ...selectedStatColumns()];
+}
+
+function readCookie(name) {
+  const prefix = encodeURIComponent(name) + "=";
+  const entry = document.cookie
+    .split(";")
+    .map((part) => part.trim())
+    .find((part) => part.startsWith(prefix));
+
+  return entry ? decodeURIComponent(entry.slice(prefix.length)) : null;
+}
+
+function writeCookie(name, value, maxAge = COOKIE_MAX_AGE) {
+  let cookie =
+    encodeURIComponent(name) +
+    "=" +
+    encodeURIComponent(value) +
+    "; Path=/; Max-Age=" +
+    maxAge +
+    "; SameSite=Lax";
+
+  if (location.protocol === "https:") cookie += "; Secure";
+  document.cookie = cookie;
+}
+
+function deleteCookie(name) {
+  writeCookie(name, "", 0);
+}
+
+function currentPreferences() {
+  const checked = new Set(
+    Array.from(els.statGroups.querySelectorAll("input[data-stat-column]:checked"))
+      .map((input) => input.dataset.statColumn)
+  );
+
+  return {
+    v: CONFIG_VERSION,
+    c: els.customizeEnabled.checked ? 1 : 0,
+    s: els.useSpecial.checked ? 1 : 0,
+    g: els.resolveGim.checked ? 1 : 0,
+    b: SELECTABLE_STAT_COLUMNS.map((column) => checked.has(column) ? "1" : "0").join("")
+  };
+}
+
+function applyPreferences(preferences) {
+  if (!preferences || preferences.v !== CONFIG_VERSION) return;
+
+  els.customizeEnabled.checked = preferences.c === 1;
+  els.useSpecial.checked = preferences.s !== 0;
+  els.resolveGim.checked = preferences.g !== 0;
+
+  if (typeof preferences.b === "string") {
+    const inputs = new Map(
+      Array.from(els.statGroups.querySelectorAll("input[data-stat-column]"))
+        .map((input) => [input.dataset.statColumn, input])
+    );
+
+    SELECTABLE_STAT_COLUMNS.forEach((column, index) => {
+      const input = inputs.get(column);
+      if (input && index < preferences.b.length) {
+        input.checked = preferences.b[index] !== "0";
+      }
+    });
+  }
+
+  els.customOptions.hidden = !els.customizeEnabled.checked;
+}
+
+function persistPreferences() {
+  if (state.cookieConsent !== "accepted") return;
+  writeCookie(CONFIG_COOKIE, JSON.stringify(currentPreferences()));
+}
+
+function loadCookiePreferences() {
+  state.cookieConsent = readCookie(CONSENT_COOKIE);
+
+  if (state.cookieConsent === "accepted") {
+    const saved = readCookie(CONFIG_COOKIE);
+    if (saved) {
+      try {
+        applyPreferences(JSON.parse(saved));
+      } catch (_error) {
+        deleteCookie(CONFIG_COOKIE);
+      }
+    }
+  }
+
+  els.cookieBanner.hidden = state.cookieConsent === "accepted" || state.cookieConsent === "declined";
+}
+
+function acceptCookies() {
+  state.cookieConsent = "accepted";
+  writeCookie(CONSENT_COOKIE, "accepted");
+  persistPreferences();
+  els.cookieBanner.hidden = true;
+}
+
+function declineCookies() {
+  state.cookieConsent = "declined";
+  writeCookie(CONSENT_COOKIE, "declined");
+  deleteCookie(CONFIG_COOKIE);
+  els.cookieBanner.hidden = true;
 }
 
 async function lookupPlayer(username) {
@@ -110,15 +278,7 @@ async function runPool(items, concurrency, worker, onDone) {
 }
 
 function rowValue(result, column) {
-  if (Object.prototype.hasOwnProperty.call(result.summary, column)) {
-    return result.summary[column];
-  }
-  return result.raw?.[column] ?? "";
-}
-
-function displayedColumns() {
-  if (!els.showRaw.checked) return VIEW_COLUMNS;
-  return [...VIEW_COLUMNS, ...rawColumnOrder(state.results)];
+  return outputValue(result, column, els.useSpecial.checked);
 }
 
 function renderTable() {
@@ -134,7 +294,6 @@ function renderTable() {
     const th = document.createElement("th");
     th.scope = "col";
     th.textContent = column;
-    if (column === "Status") th.classList.add("status-column");
     headRow.appendChild(th);
   });
   thead.appendChild(headRow);
@@ -147,11 +306,6 @@ function renderTable() {
       const td = document.createElement("td");
       const value = rowValue(result, column);
       td.textContent = value === null || value === undefined ? "" : String(value);
-
-      if (column === "Status") {
-        td.classList.add("status-cell", "status-" + result.statusLevel);
-      }
-
       tr.appendChild(td);
     });
     tbody.appendChild(tr);
@@ -159,7 +313,7 @@ function renderTable() {
 
   const completed = state.results.filter(Boolean);
   const errors = completed.filter((result) => result.statusLevel === "error").length;
-  const temple = completed.filter((result) => result.summary.Source === "TempleOSRS").length;
+  const temple = completed.filter((result) => result.source === "TempleOSRS").length;
 
   els.resultSummary.textContent =
     completed.length +
@@ -279,7 +433,10 @@ async function handleFetch() {
     const errors = state.results.filter((result) => result.statusLevel === "error").length;
     if (errors > 0) {
       setNotice(
-        errors + " player" + (errors === 1 ? "" : "s") + " could not be loaded. See the Status column.",
+        errors +
+          " player" +
+          (errors === 1 ? "" : "s") +
+          " could not be loaded; their stat cells are blank.",
         "error"
       );
     }
@@ -290,6 +447,16 @@ async function handleFetch() {
     els.resolveGim.disabled = false;
   }
 }
+
+function handlePreferenceChange() {
+  els.customOptions.hidden = !els.customizeEnabled.checked;
+  persistPreferences();
+  renderTable();
+}
+
+renderStatOptions();
+loadCookiePreferences();
+updatePlayerCount();
 
 els.usernames.addEventListener("input", updatePlayerCount);
 els.fetchButton.addEventListener("click", handleFetch);
@@ -302,7 +469,16 @@ els.clearButton.addEventListener("click", () => {
   setNotice("");
   updatePlayerCount();
 });
-els.showRaw.addEventListener("change", renderTable);
+
+els.customizeEnabled.addEventListener("change", handlePreferenceChange);
+els.useSpecial.addEventListener("change", handlePreferenceChange);
+els.resolveGim.addEventListener("change", persistPreferences);
+els.statGroups.addEventListener("change", (event) => {
+  if (event.target instanceof HTMLInputElement && event.target.dataset.statColumn) {
+    persistPreferences();
+    renderTable();
+  }
+});
 
 els.copySummary.addEventListener("click", async () => {
   await copyText(toTsv(rowsForColumns(EXPORT_SUMMARY_COLUMNS)));
@@ -310,9 +486,9 @@ els.copySummary.addEventListener("click", async () => {
 });
 
 els.copyAll.addEventListener("click", async () => {
-  const columns = [...VIEW_COLUMNS, ...rawColumnOrder(state.results)];
+  const columns = displayedColumns();
   await copyText(toTsv(rowsForColumns(columns)));
-  setNotice("Full table copied as tab-separated values.");
+  setNotice("Configured output copied as tab-separated values.");
 });
 
 els.downloadSummary.addEventListener("click", () => {
@@ -324,12 +500,16 @@ els.downloadSummary.addEventListener("click", () => {
 });
 
 els.downloadAll.addEventListener("click", () => {
-  const columns = [...VIEW_COLUMNS, ...rawColumnOrder(state.results)];
+  const columns = displayedColumns();
   downloadText(
-    timestampFilename("bingo-player-stats-full"),
+    timestampFilename("bingo-player-stats-configured"),
     toCsv(rowsForColumns(columns)),
     "text/csv;charset=utf-8"
   );
 });
 
-updatePlayerCount();
+els.cookieAccept.addEventListener("click", acceptCookies);
+els.cookieDecline.addEventListener("click", declineCookies);
+els.cookieSettings.addEventListener("click", () => {
+  els.cookieBanner.hidden = false;
+});

@@ -1,6 +1,12 @@
 import { algorithms, knownBosses } from "./vendor/wom/index.js";
 import { REAL_SKILLS } from "./vendor/wom/types.js";
 import {
+  activityColumnName,
+  bossColumnName,
+  SELECTABLE_STAT_COLUMNS,
+  skillLabel
+} from "./stat-catalog.js";
+import {
   canonicalBossName,
   normalizeName,
   roundMetric,
@@ -13,36 +19,12 @@ export const EXPORT_SUMMARY_COLUMNS = [
   "Username",
   "Gamemode",
   "EHP",
-  "Special EHP",
   "EHB",
-  "Special EHB"
-];
-
-export const VIEW_COLUMNS = [
-  ...EXPORT_SUMMARY_COLUMNS,
-  "Build",
-  "Source",
   "Total Level",
-  "Total XP",
-  "Status"
+  "Total XP"
 ];
 
-const SKILL_LABELS = new Map([
-  ["runecrafting", "Runecrafting"],
-  ["hitpoints", "Hitpoints"]
-]);
-
-function labelize(value) {
-  return String(value)
-    .split("_")
-    .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
-}
-
-function skillLabel(skill) {
-  return SKILL_LABELS.get(skill) || labelize(skill);
-}
+export const VIEW_COLUMNS = [...EXPORT_SUMMARY_COLUMNS];
 
 function makeExperienceMap(hiscore) {
   return new Map(
@@ -97,7 +79,9 @@ function buildHiscoreRaw(hiscore) {
   );
 
   for (const activity of activities) {
-    raw[activity.name + " Score"] = toNumber(activity.score, 0);
+    const column = activityColumnName(activity.name);
+    if (!column) continue;
+    raw[column] = toNumber(activity.score, 0);
   }
 
   return raw;
@@ -182,7 +166,9 @@ function buildTempleRaw(stats) {
     "player",
     "username",
     "primary_ehp",
-    "primary_ehb"
+    "primary_ehb",
+    "league_points",
+    "grid_points"
   ].map(normalizeName));
 
   for (const [key, value] of Object.entries(stats || {})) {
@@ -196,7 +182,7 @@ function buildTempleRaw(stats) {
 
     const canonical = canonicalBossName(key);
     if (knownBosses.includes(canonical)) {
-      raw[labelize(canonical) + " Score"] = number;
+      raw[bossColumnName(canonical)] = number;
     }
   }
 
@@ -263,29 +249,22 @@ export function computeHiscoreResult(username, hiscore, classification) {
     ? roundMetric(specialEhbAlgorithm.calculateEHB(killcountMap))
     : 0;
 
-  const build = classification.build === "lvl3"
-    ? "Level 3"
-    : classification.build === "def1"
-      ? "1 Defence"
-      : "";
-
-  const status = classification.warning || "Fetched from Jagex HiScores; efficiency calculated locally.";
-
   return {
     summary: {
       Username: username,
-      Gamemode: classification.modeLabel,
+      Gamemode: classification.modeLabel || "Main",
       EHP: ehp,
-      "Special EHP": specialEhp,
       EHB: ehb,
-      "Special EHB": specialEhb,
-      Build: build,
-      Source: "Jagex HiScores",
       "Total Level": getHiscoreTotalLevel(hiscore),
-      "Total XP": getHiscoreTotalXp(hiscore),
-      Status: status
+      "Total XP": getHiscoreTotalXp(hiscore)
+    },
+    special: {
+      EHP: specialEhp,
+      EHB: specialEhb
     },
     raw: buildHiscoreRaw(hiscore),
+    source: "Jagex HiScores",
+    message: classification.warning || "",
     statusLevel: classification.warning ? "warn" : "ok"
   };
 }
@@ -307,7 +286,6 @@ export function computeTempleResult(requestedUsername, fallback) {
 
   const specialEhp = firstNonZero(lvl3Ehp, oneDefEhp, uimEhp, gimEhp, imEhp);
   const specialEhb = firstNonZero(oneDefEhb, uimEhb, imEhb);
-  const build = lvl3Ehp !== 0 ? "Level 3" : oneDefEhp !== 0 ? "1 Defence" : "";
 
   const statusParts = [
     "Jagex HiScores lookup failed; using TempleOSRS.",
@@ -317,18 +295,19 @@ export function computeTempleResult(requestedUsername, fallback) {
   return {
     summary: {
       Username: fallback.username || requestedUsername,
-      Gamemode: fallback.modeLabel || "Unknown",
+      Gamemode: fallback.modeLabel || "Main",
       EHP: ehp,
-      "Special EHP": specialEhp,
       EHB: ehb,
-      "Special EHB": specialEhb,
-      Build: build,
-      Source: "TempleOSRS",
       "Total Level": templeTotalLevel(stats),
-      "Total XP": templeTotalXp(stats),
-      Status: statusParts.join(" ")
+      "Total XP": templeTotalXp(stats)
+    },
+    special: {
+      EHP: specialEhp,
+      EHB: specialEhb
     },
     raw: buildTempleRaw(stats),
+    source: "TempleOSRS",
+    message: statusParts.join(" "),
     statusLevel: fallback.refreshNote && /failed|older|unavailable/i.test(fallback.refreshNote)
       ? "warn"
       : "ok"
@@ -339,32 +318,39 @@ export function makeErrorResult(username, error) {
   return {
     summary: {
       Username: username,
-      Gamemode: "",
+      Gamemode: "Main",
       EHP: "",
-      "Special EHP": "",
       EHB: "",
-      "Special EHB": "",
-      Build: "",
-      Source: "",
       "Total Level": "",
-      "Total XP": "",
-      Status: error instanceof Error ? error.message : String(error)
+      "Total XP": ""
+    },
+    special: {
+      EHP: 0,
+      EHB: 0
     },
     raw: {},
+    source: "",
+    message: error instanceof Error ? error.message : String(error),
     statusLevel: "error"
   };
 }
 
-export function rawColumnOrder(results) {
-  const skillColumns = [];
-  for (const skill of REAL_SKILLS) {
-    const label = skillLabel(skill);
-    skillColumns.push(label + " Level", label + " XP");
+export function outputValue(result, column, useSpecial = false) {
+  if (useSpecial && (column === "EHP" || column === "EHB")) {
+    const special = toNumber(result?.special?.[column], 0);
+    if (special > 0) return special;
   }
 
-  const present = new Set(results.flatMap((result) => Object.keys(result.raw || {})));
-  const orderedSkills = skillColumns.filter((column) => present.has(column));
-  orderedSkills.forEach((column) => present.delete(column));
+  if (Object.prototype.hasOwnProperty.call(result?.summary || {}, column)) {
+    return result.summary[column];
+  }
 
-  return [...orderedSkills, ...Array.from(present).sort((a, b) => a.localeCompare(b))];
+  return result?.raw?.[column] ?? "";
+}
+
+export function rawColumnOrder(results) {
+  const present = new Set(results.flatMap((result) => Object.keys(result.raw || {})));
+  const ordered = SELECTABLE_STAT_COLUMNS.filter((column) => present.has(column));
+  ordered.forEach((column) => present.delete(column));
+  return [...ordered, ...Array.from(present).sort((a, b) => a.localeCompare(b))];
 }

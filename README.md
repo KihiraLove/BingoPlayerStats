@@ -7,22 +7,41 @@ Paste one RuneScape name per line (or paste a column directly from Excel/Google 
 ## Data flow
 
 1. **Primary:** official OSRS HiScores, requested through the OSRS Wiki CORS proxy so the static GitHub Pages app can access Jagex's public endpoint from a browser.
-2. **Account classification:** official specialist HiScore boards are probed for level-3, 1-defence, UIM, HCIM and IM classification. TempleOSRS player info is used opportunistically to identify GIM accounts.
+2. **Account classification:** official specialist HiScore boards are probed for level-3, 1-defence, UIM, HCIM and IM classification. TempleOSRS player info is used opportunistically to identify GIM accounts. If the gamemode cannot be resolved, the app defaults to **Main**.
 3. **Local efficiency metrics:** EHP/EHB are calculated in the browser. The efficiency algorithm and rate configurations are adapted from the MIT-licensed Wise Old Man project; see `THIRD_PARTY_NOTICES.md`.
 4. **Fallback:** if the official HiScores lookup fails, TempleOSRS is queried. If Temple reports the player was last checked more than one hour ago, the app requests a datapoint refresh before loading Temple stats.
 
 ## Output
 
-The summary starts with the same fields as the original `_smallPersonalProjects/get_from_temple/main.py` tool:
+The compact output contains:
 
 - Username
 - Gamemode
 - EHP
-- Special EHP
 - EHB
-- Special EHB
+- Total Level
+- Total XP
 
-The viewer can also expose raw skill XP and boss/activity scores. Use **Copy summary**, **Copy all**, **Download summary CSV**, or **Download all CSV** for spreadsheet workflows.
+The **Use special EHP/EHB where applicable** option keeps the same EHP/EHB columns but substitutes the applicable special efficiency value for accounts that have one. It does not add separate Special EHP or Special EHB columns.
+
+Enable **stat customisation** to add individual skill levels, skill XP, bosses and activities. All optional stats are selected by default when customisation is enabled.
+
+Spreadsheet output intentionally omits Build, Source, Status, League Points and Grid Points. Activity headings that represent counts/ranks directly (including clues, collections logged, Colosseum glory, Bounty Hunter, PvP Arena, rifts closed, LMS, Lunar Chests and Barrows Chests) have no `Score` suffix. Other boss/activity columns use `KC`.
+
+Use **Copy summary**, **Copy configured output**, **Download summary CSV**, or **Download configured CSV** for spreadsheet workflows.
+
+## Preferences and cookies
+
+The site has no backend and does not store usernames or player stats.
+
+With consent, it stores the output configuration in a functional browser cookie so the following settings can be restored on the next visit:
+
+- whether stat customisation is enabled;
+- which optional stat columns are selected;
+- whether special EHP/EHB substitution is enabled;
+- whether TempleOSRS GIM resolution is enabled.
+
+The consent choice itself is stored separately so the banner does not need to be shown on every visit. Declining removes the configuration cookie.
 
 ## Run locally
 
@@ -39,14 +58,14 @@ Opening `index.html` directly with a `file://` URL is not recommended because br
 ## Tests
 
 ```bash
-node --test
+npm test
 ```
 
 There are no npm dependencies.
 
 ## GitHub Pages
 
-The repository contains a Pages workflow in `.github/workflows/pages.yml`. In GitHub, set **Settings → Pages → Build and deployment → Source** to **GitHub Actions** once, then pushes to `main` deploy automatically.
+The repository contains a Pages workflow in `.github/workflows/pages.yml`. Pushes to `main` deploy automatically through GitHub Actions.
 
 ## Accuracy and third-party services
 

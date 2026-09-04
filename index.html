@@ -39,6 +39,30 @@
         aria-label="RuneScape usernames"
       ></textarea>
 
+      <section class="customize-panel" aria-labelledby="customize-heading">
+        <div class="customize-heading">
+          <div>
+            <h2 id="customize-heading">Output configuration</h2>
+            <p>Keep the compact default output, or enable customisation to add individual stats.</p>
+          </div>
+          <label class="checkbox toggle-checkbox">
+            <input id="customize-enabled" type="checkbox">
+            <span>Enable stat customisation</span>
+          </label>
+        </div>
+
+        <label class="checkbox special-checkbox">
+          <input id="use-special" type="checkbox" checked>
+          <span>Use special EHP/EHB where applicable</span>
+        </label>
+        <p class="option-help">When enabled, the EHP and EHB columns use special values for accounts that have them; other accounts keep normal EHP/EHB. Separate special columns are not added.</p>
+
+        <div id="custom-options" class="custom-options" hidden>
+          <p class="custom-options-intro">Choose additional spreadsheet columns. Every stat is selected by default.</p>
+          <div id="stat-groups" class="stat-groups"></div>
+        </div>
+      </section>
+
       <div class="controls">
         <button id="fetch-button" class="primary" type="button">Fetch player stats</button>
         <button id="clear-button" class="secondary" type="button">Clear</button>
@@ -64,17 +88,13 @@
           <h2 id="results-heading">Results</h2>
           <p id="result-summary">No results yet.</p>
         </div>
-        <label class="checkbox compact">
-          <input id="show-raw" type="checkbox">
-          <span>Show raw skill / boss columns</span>
-        </label>
       </div>
 
       <div class="toolbar" aria-label="Spreadsheet export controls">
         <button id="copy-summary" class="secondary" type="button">Copy summary</button>
-        <button id="copy-all" class="secondary" type="button">Copy all</button>
+        <button id="copy-all" class="secondary" type="button">Copy configured output</button>
         <button id="download-summary" class="secondary" type="button">Download summary CSV</button>
-        <button id="download-all" class="secondary" type="button">Download all CSV</button>
+        <button id="download-all" class="secondary" type="button">Download configured CSV</button>
       </div>
 
       <div class="table-wrap" tabindex="0" aria-label="Player statistics table">
@@ -84,13 +104,25 @@
         </table>
       </div>
 
-      <p class="table-help">Tip: the copy buttons use tab-separated values, so pasting into Excel or Google Sheets fills cells automatically.</p>
+      <p class="table-help">Tip: copy uses tab-separated values, so pasting into Excel or Google Sheets fills cells automatically.</p>
     </section>
 
     <footer>
-      <p>All player data is public. This site stores nothing on a server.</p>
+      <p>All player data is public. No usernames or player stats are stored by this site.</p>
+      <button id="cookie-settings" class="text-button" type="button">Cookie settings</button>
     </footer>
   </main>
+
+  <aside id="cookie-consent" class="cookie-banner" role="dialog" aria-labelledby="cookie-title" aria-describedby="cookie-description">
+    <div>
+      <strong id="cookie-title">Cookie consent</strong>
+      <p id="cookie-description">With your consent, this site saves your output configuration in a functional cookie so your selected stats are restored next time. It does not store usernames or player stats and is not used for tracking. A small consent cookie remembers this choice.</p>
+    </div>
+    <div class="cookie-actions">
+      <button id="cookie-accept" class="primary" type="button">Accept config cookies</button>
+      <button id="cookie-decline" class="secondary" type="button">Decline</button>
+    </div>
+  </aside>
 
   <script type="module" src="./src/app.js"></script>
 </body>

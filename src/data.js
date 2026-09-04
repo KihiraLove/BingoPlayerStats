@@ -174,8 +174,9 @@ export async function classifyFromHiscores(username, hiscore, resolveGim = true)
         classification.warning = "GIM special metrics use the local Ironman efficiency profile.";
       }
     } catch (_error) {
-      classification.modeLabel = "Main / GIM";
-      classification.warning = "TempleOSRS could not resolve whether this main-board account is GIM.";
+      classification.mode = "main";
+      classification.modeLabel = "Main";
+      classification.warning = "TempleOSRS could not resolve whether this main-board account is GIM; defaulted to Main.";
     }
   }
 
@@ -281,7 +282,7 @@ export async function fetchTempleFallback(username) {
     refreshed,
     refreshAttempted,
     refreshNote,
-    modeKey: info ? templeModeKey(info.gameMode, info.gim) : "unknown",
-    modeLabel: info ? deriveTempleGamemode(info.gameMode, info.gim) : "Unknown"
+    modeKey: info ? templeModeKey(info.gameMode, info.gim) : "main",
+    modeLabel: info ? deriveTempleGamemode(info.gameMode, info.gim) : "Main"
   };
 }

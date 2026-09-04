@@ -94,7 +94,7 @@ export function deriveTempleGamemode(gameModeRaw, gimRaw) {
     [1, "IM"],
     [2, "UIM"],
     [3, "HCIM"]
-  ]).get(gameMode) || "Unknown";
+  ]).get(gameMode) || "Main";
 }
 
 export function templeModeKey(gameModeRaw, gimRaw) {
@@ -105,8 +105,7 @@ export function templeModeKey(gameModeRaw, gimRaw) {
   if (gameMode === 1) return "ironman";
   if (gameMode === 2) return "ultimate";
   if (gameMode === 3) return "hardcore";
-  if (gameMode === 0) return "main";
-  return "unknown";
+  return "main";
 }
 
 export function selectSpecialProfile(classification) {
