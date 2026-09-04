@@ -56,6 +56,19 @@ export function roundMetric(value) {
   return Number.isFinite(number) ? Math.round(number) : 0;
 }
 
+export function xpToLevel(value) {
+  const xp = Math.max(0, toNumber(value, 0));
+  let points = 0;
+
+  for (let level = 1; level < 99; level += 1) {
+    points += Math.floor(level + 300 * (2 ** (level / 7)));
+    const nextLevelXp = Math.floor(points / 4);
+    if (xp < nextLevelXp) return level;
+  }
+
+  return 99;
+}
+
 export function deriveTempleGamemode(gameModeRaw, gimRaw) {
   const gim = toNumber(gimRaw, 0);
 
