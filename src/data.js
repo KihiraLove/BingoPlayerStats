@@ -242,19 +242,19 @@ export async function fetchTempleFallback(username) {
   try {
     info = await fetchTempleInfo(username);
     const now = Math.floor(Date.now() / 1000);
-    const stale = info.lastChecked > 0 && now - info.lastChecked >= 3600;
+    const stale = info.lastChecked <= 0 || now - info.lastChecked >= 3600;
 
-    if (stale && info.datapointCooldown <= 0) {
+    if (stale) {
       refreshAttempted = true;
       try {
         refreshed = await triggerTempleUpdate(username);
-        refreshNote = refreshed ? "Temple datapoint refresh requested." : "Temple refresh request did not succeed.";
+        refreshNote = refreshed
+          ? "Temple datapoint refresh requested because the stored data was at least one hour old."
+          : "Temple refresh request did not succeed; using the latest stored data.";
         if (refreshed) await sleep(700);
       } catch (_error) {
         refreshNote = "Temple datapoint refresh failed; using the latest stored data.";
       }
-    } else if (stale) {
-      refreshNote = "Temple data is older than one hour but the datapoint cooldown is still active.";
     }
   } catch (_error) {
     refreshNote = "Temple player metadata was unavailable; using stored stats without a freshness check.";
