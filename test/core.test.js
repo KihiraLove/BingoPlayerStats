@@ -5,7 +5,8 @@ import { algorithms } from "../src/vendor/wom/index.js";
 import {
   deriveTempleGamemode,
   parseUsernames,
-  selectSpecialProfile
+  selectSpecialProfile,
+  xpToLevel
 } from "../src/utils.js";
 import { computeTempleResult } from "../src/metrics.js";
 
@@ -62,4 +63,11 @@ test("Temple result keeps original special EHP and EHB precedence", () => {
   assert.equal(result.summary["Special EHB"], 48);
   assert.equal(result.summary.EHP, 100);
   assert.equal(result.summary.EHB, 50);
+});
+
+test("XP converts to standard OSRS skill levels", () => {
+  assert.equal(xpToLevel(0), 1);
+  assert.equal(xpToLevel(83), 2);
+  assert.equal(xpToLevel(13_034_431), 99);
+  assert.equal(xpToLevel(200_000_000), 99);
 });
