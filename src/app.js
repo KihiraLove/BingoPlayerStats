@@ -6,7 +6,6 @@ import {
 import {
   computeHiscoreResult,
   computeTempleResult,
-  EXPORT_SUMMARY_COLUMNS,
   makeErrorResult,
   outputValue,
   VIEW_COLUMNS
@@ -40,9 +39,7 @@ const els = {
   resultsPanel: document.querySelector("#results-panel"),
   resultSummary: document.querySelector("#result-summary"),
   table: document.querySelector("#results-table"),
-  copySummary: document.querySelector("#copy-summary"),
   copyAll: document.querySelector("#copy-all"),
-  downloadSummary: document.querySelector("#download-summary"),
   downloadAll: document.querySelector("#download-all"),
   cookieBanner: document.querySelector("#cookie-consent"),
   cookieAccept: document.querySelector("#cookie-accept"),
@@ -92,6 +89,22 @@ function makeStatCheckbox(column, text, className = "checkbox stat-option") {
   return label;
 }
 
+function makeSkillStatCheckbox(column, text) {
+  const label = document.createElement("label");
+  label.className = "skill-stat-checkbox";
+
+  const caption = document.createElement("span");
+  caption.textContent = text;
+
+  const input = document.createElement("input");
+  input.type = "checkbox";
+  input.checked = true;
+  input.dataset.statColumn = column;
+
+  label.append(caption, input);
+  return label;
+}
+
 function renderStatOptions() {
   els.statGroups.replaceChildren();
 
@@ -115,8 +128,8 @@ function renderStatOptions() {
 
     row.append(
       name,
-      makeStatCheckbox(skill.levelColumn, "Level", "checkbox skill-stat-checkbox"),
-      makeStatCheckbox(skill.xpColumn, "XP", "checkbox skill-stat-checkbox")
+      makeSkillStatCheckbox(skill.levelColumn, "Level"),
+      makeSkillStatCheckbox(skill.xpColumn, "XP")
     );
     skillOptions.appendChild(row);
   }
@@ -517,23 +530,10 @@ els.statGroups.addEventListener("change", (event) => {
   }
 });
 
-els.copySummary.addEventListener("click", async () => {
-  await copyText(toTsv(rowsForColumns(EXPORT_SUMMARY_COLUMNS)));
-  setNotice("Summary copied as tab-separated values.");
-});
-
 els.copyAll.addEventListener("click", async () => {
   const columns = displayedColumns();
   await copyText(toTsv(rowsForColumns(columns)));
   setNotice("Configured output copied as tab-separated values.");
-});
-
-els.downloadSummary.addEventListener("click", () => {
-  downloadText(
-    timestampFilename("bingo-player-stats-summary"),
-    toCsv(rowsForColumns(EXPORT_SUMMARY_COLUMNS)),
-    "text/csv;charset=utf-8"
-  );
 });
 
 els.downloadAll.addEventListener("click", () => {

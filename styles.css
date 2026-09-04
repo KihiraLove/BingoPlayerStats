@@ -67,20 +67,6 @@ h1 {
   line-height: 1.55;
 }
 
-.source-note {
-  flex: 0 0 auto;
-  min-width: 205px;
-  padding: 14px 16px;
-  border: 1px solid var(--border);
-  background: rgba(27, 25, 20, 0.75);
-  box-shadow: var(--shadow);
-}
-
-.source-note strong, .source-note span, .source-note small { display: block; }
-.source-note strong { color: var(--accent); font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; }
-.source-note span { margin-top: 3px; font-weight: 750; }
-.source-note small { margin-top: 2px; color: var(--muted); }
-
 .panel {
   border: 1px solid var(--border);
   background: linear-gradient(180deg, rgba(36, 32, 25, 0.96), rgba(27, 25, 20, 0.98));
@@ -154,7 +140,6 @@ textarea:focus {
 }
 
 .customize-heading p,
-.option-help,
 .custom-options-intro {
   margin: 4px 0 0;
   color: var(--muted);
@@ -168,9 +153,43 @@ textarea:focus {
   color: var(--text);
 }
 
-.option-help {
-  margin-left: 25px;
-  max-width: 900px;
+.customize-toggle {
+  display: flex;
+  width: fit-content;
+  margin: 9px 0 0;
+}
+
+.tooltip-target {
+  position: relative;
+  cursor: help;
+  outline: none;
+}
+
+.tooltip-target::after {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 9px);
+  z-index: 15;
+  width: min(520px, 76vw);
+  content: attr(data-tooltip);
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  border: 1px solid var(--border);
+  background: #171510;
+  box-shadow: var(--shadow);
+  padding: 9px 11px;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 400;
+  line-height: 1.4;
+  transition: opacity 120ms ease-out;
+}
+
+.tooltip-target:hover::after,
+.tooltip-target:focus::after {
+  opacity: 1;
+  visibility: visible;
 }
 
 .custom-options {
@@ -213,9 +232,10 @@ textarea:focus {
 
 .skill-stat-row {
   display: grid;
-  grid-template-columns: minmax(110px, 1fr) auto auto;
+  grid-template-columns: 108px auto auto;
   align-items: center;
-  gap: 10px;
+  justify-content: start;
+  column-gap: 10px;
   min-height: 28px;
 }
 
@@ -225,9 +245,19 @@ textarea:focus {
 }
 
 .skill-stat-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   width: auto;
   margin: 0;
+  color: var(--muted);
   font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.skill-stat-checkbox input {
+  margin: 0;
+  accent-color: var(--accent);
 }
 
 .stat-options {
@@ -401,6 +431,16 @@ footer {
 
 footer p { margin: 0; }
 
+.footer-meta {
+  display: grid;
+  gap: 3px;
+}
+
+.footer-meta strong {
+  color: var(--muted);
+  font-weight: 700;
+}
+
 .text-button {
   min-height: auto;
   border: 0;
@@ -460,11 +500,9 @@ footer p { margin: 0; }
 @media (max-width: 760px) {
   .page-shell { width: min(100% - 20px, 1500px); padding-top: 24px; }
   .hero, .section-heading, .customize-heading { align-items: stretch; flex-direction: column; }
-  .source-note { width: 100%; }
   .checkbox { width: 100%; margin: 2px 0 0; }
-  .toggle-checkbox { margin-top: 2px; }
   .special-checkbox { margin-top: 14px; }
-  .option-help { margin-left: 0; }
+  .customize-toggle { width: 100%; margin-top: 9px; }
   .results-heading { padding: 0 14px; }
   .toolbar, .table-help { padding-left: 14px; padding-right: 14px; }
   footer { align-items: flex-start; flex-direction: column; }
