@@ -104,15 +104,48 @@ function makeSkillStatCheckbox(column, text) {
   return label;
 }
 
+function makeGroupHeading(title) {
+  const heading = document.createElement("div");
+  heading.className = "stat-group-heading";
+
+  const label = document.createElement("h3");
+  label.textContent = title;
+
+  const toggleLabel = document.createElement("label");
+  toggleLabel.className = "group-toggle";
+
+  const toggle = document.createElement("input");
+  toggle.type = "checkbox";
+  toggle.checked = true;
+  toggle.dataset.groupToggle = "true";
+
+  const toggleText = document.createElement("span");
+  toggleText.textContent = "All";
+
+  toggleLabel.append(toggle, toggleText);
+  heading.append(label, toggleLabel);
+  return heading;
+}
+
+function updateGroupToggles() {
+  for (const section of els.statGroups.querySelectorAll(".stat-group")) {
+    const toggle = section.querySelector("input[data-group-toggle]");
+    if (!toggle) continue;
+
+    const inputs = Array.from(section.querySelectorAll("input[data-stat-column]"));
+    const checked = inputs.filter((input) => input.checked).length;
+
+    toggle.checked = inputs.length > 0 && checked === inputs.length;
+    toggle.indeterminate = checked > 0 && checked < inputs.length;
+  }
+}
+
 function renderStatOptions() {
   els.statGroups.replaceChildren();
 
   const skillsSection = document.createElement("section");
   skillsSection.className = "stat-group skills-group";
-
-  const skillsHeading = document.createElement("h3");
-  skillsHeading.textContent = "Skills";
-  skillsSection.appendChild(skillsHeading);
+  skillsSection.appendChild(makeGroupHeading("Skills"));
 
   const skillOptions = document.createElement("div");
   skillOptions.className = "skill-stat-options";
@@ -140,9 +173,7 @@ function renderStatOptions() {
     const section = document.createElement("section");
     section.className = "stat-group";
 
-    const heading = document.createElement("h3");
-    heading.textContent = group.label;
-    section.appendChild(heading);
+    section.appendChild(makeGroupHeading(group.label));
 
     const options = document.createElement("div");
     options.className = "stat-options";
@@ -157,6 +188,8 @@ function renderStatOptions() {
     section.appendChild(options);
     els.statGroups.appendChild(section);
   }
+
+  updateGroupToggles();
 }
 
 function selectedStatColumns() {
@@ -235,6 +268,7 @@ function applyPreferences(preferences) {
   }
 
   els.customOptions.hidden = !els.customizeEnabled.checked;
+  updateGroupToggles();
 }
 
 function persistPreferences() {
@@ -518,7 +552,24 @@ els.clearButton.addEventListener("click", () => {
 els.customizeEnabled.addEventListener("change", handlePreferenceChange);
 els.useSpecial.addEventListener("change", handlePreferenceChange);
 els.statGroups.addEventListener("change", (event) => {
-  if (event.target instanceof HTMLInputElement && event.target.dataset.statColumn) {
+  if (!(event.target instanceof HTMLInputElement)) return;
+
+  if (event.target.dataset.groupToggle) {
+    const section = event.target.closest(".stat-group");
+    if (!section) return;
+
+    for (const input of section.querySelectorAll("input[data-stat-column]")) {
+      input.checked = event.target.checked;
+    }
+
+    updateGroupToggles();
+    persistPreferences();
+    renderTable();
+    return;
+  }
+
+  if (event.target.dataset.statColumn) {
+    updateGroupToggles();
     persistPreferences();
     renderTable();
   }
