@@ -464,6 +464,12 @@ footer p { margin: 0; }
   font-weight: 700;
 }
 
+.footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .text-button {
   min-height: auto;
   border: 0;
