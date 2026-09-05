@@ -42,19 +42,52 @@
           </div>
         </div>
 
-        <label class="checkbox special-checkbox">
-          <input id="use-special" type="checkbox" checked>
-          <span
-            class="tooltip-target"
-            tabindex="0"
-            data-tooltip="When enabled, the EHP and EHB columns use special values for accounts that have them, other accounts keep normal EHP/EHB. Separate special columns are not added."
-          >Use special EHP/EHB where applicable</span>
-        </label>
+        <div class="regular-options">
+          <label class="checkbox regular-option">
+            <input id="include-hiscores-link" type="checkbox">
+            <span
+              class="tooltip-target"
+              tabindex="0"
+              data-tooltip="Adds a column with a direct link to each player's official OSRS HiScores page."
+            >Include HiScores page</span>
+          </label>
 
-        <label class="checkbox customize-toggle">
-          <input id="customize-enabled" type="checkbox">
-          <span>Enable stat customisation</span>
-        </label>
+          <label class="checkbox regular-option">
+            <input id="include-temple-link" type="checkbox">
+            <span
+              class="tooltip-target"
+              tabindex="0"
+              data-tooltip="Adds a column with a direct link to each player's TempleOSRS profile."
+            >Include TempleOSRS page</span>
+          </label>
+
+          <label class="checkbox regular-option">
+            <input id="include-wom-link" type="checkbox">
+            <span
+              class="tooltip-target"
+              tabindex="0"
+              data-tooltip="Adds a column with a direct link to each player's Wise Old Man profile."
+            >Include Wise Old Man page</span>
+          </label>
+
+          <label class="checkbox regular-option">
+            <input id="use-special" type="checkbox" checked>
+            <span
+              class="tooltip-target"
+              tabindex="0"
+              data-tooltip="Uses the applicable special-account EHP/EHB values where available; other accounts keep normal EHP/EHB."
+            >Use special EHP/EHB where applicable</span>
+          </label>
+
+          <label class="checkbox regular-option">
+            <input id="customize-enabled" type="checkbox">
+            <span
+              class="tooltip-target"
+              tabindex="0"
+              data-tooltip="Shows detailed skill, boss and activity controls so you can choose which additional stat columns to include."
+            >Enable stat customisation</span>
+          </label>
+        </div>
 
         <div id="custom-options" class="custom-options" hidden>
           <div id="stat-groups" class="stat-groups"></div>

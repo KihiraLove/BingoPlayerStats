@@ -11,7 +11,6 @@ import {
   VIEW_COLUMNS
 } from "./metrics.js";
 import {
-  LINK_OPTIONS,
   SELECTABLE_LINK_COLUMNS,
   SELECTABLE_STAT_COLUMNS,
   SKILL_STAT_ROWS,
@@ -34,6 +33,9 @@ const els = {
   customOptions: document.querySelector("#custom-options"),
   statGroups: document.querySelector("#stat-groups"),
   useSpecial: document.querySelector("#use-special"),
+  includeHiscoresLink: document.querySelector("#include-hiscores-link"),
+  includeTempleLink: document.querySelector("#include-temple-link"),
+  includeWomLink: document.querySelector("#include-wom-link"),
   progressWrap: document.querySelector("#progress-wrap"),
   progressBar: document.querySelector("#progress-bar"),
   progressText: document.querySelector("#progress-text"),
@@ -192,27 +194,6 @@ function renderStatOptions() {
     els.statGroups.appendChild(section);
   }
 
-  const linksSection = document.createElement("section");
-  linksSection.className = "stat-group links-group";
-
-  const linksHeading = document.createElement("h3");
-  linksHeading.textContent = "Links";
-  linksSection.appendChild(linksHeading);
-
-  const linkOptions = document.createElement("div");
-  linkOptions.className = "stat-options";
-
-  for (const option of LINK_OPTIONS) {
-    const label = makeStatCheckbox(option.column, option.label, "checkbox stat-option", false);
-    const input = label.querySelector("input");
-    delete input.dataset.statColumn;
-    input.dataset.linkColumn = option.column;
-    linkOptions.appendChild(label);
-  }
-
-  linksSection.appendChild(linkOptions);
-  els.statGroups.appendChild(linksSection);
-
   updateGroupToggles();
 }
 
@@ -226,17 +207,18 @@ function selectedStatColumns() {
 }
 
 function selectedLinkColumns() {
-  const selected = new Set(
-    Array.from(els.statGroups.querySelectorAll("input[data-link-column]:checked"))
-      .map((input) => input.dataset.linkColumn)
-  );
+  const selected = new Set();
+  if (els.includeHiscoresLink.checked) selected.add("HiScores Link");
+  if (els.includeTempleLink.checked) selected.add("TempleOSRS Link");
+  if (els.includeWomLink.checked) selected.add("WOM Link");
 
   return SELECTABLE_LINK_COLUMNS.filter((column) => selected.has(column));
 }
 
 function displayedColumns() {
-  if (!els.customizeEnabled.checked) return VIEW_COLUMNS;
-  return [...VIEW_COLUMNS, ...selectedLinkColumns(), ...selectedStatColumns()];
+  const links = selectedLinkColumns();
+  const stats = els.customizeEnabled.checked ? selectedStatColumns() : [];
+  return [...VIEW_COLUMNS, ...links, ...stats];
 }
 
 function readCookie(name) {
@@ -277,9 +259,11 @@ function currentPreferences() {
     c: els.customizeEnabled.checked ? 1 : 0,
     s: els.useSpecial.checked ? 1 : 0,
     b: SELECTABLE_STAT_COLUMNS.map((column) => checked.has(column) ? "1" : "0").join(""),
-    l: SELECTABLE_LINK_COLUMNS.map((column) =>
-      Boolean(els.statGroups.querySelector(`input[data-link-column="${column}"]:checked`)) ? "1" : "0"
-    ).join("")
+    l: [
+      els.includeHiscoresLink.checked,
+      els.includeTempleLink.checked,
+      els.includeWomLink.checked
+    ].map((checked) => checked ? "1" : "0").join("")
   };
 }
 
@@ -304,14 +288,14 @@ function applyPreferences(preferences) {
   }
 
   if (typeof preferences.l === "string") {
-    const inputs = new Map(
-      Array.from(els.statGroups.querySelectorAll("input[data-link-column]"))
-        .map((input) => [input.dataset.linkColumn, input])
-    );
+    const inputs = [
+      els.includeHiscoresLink,
+      els.includeTempleLink,
+      els.includeWomLink
+    ];
 
-    SELECTABLE_LINK_COLUMNS.forEach((column, index) => {
-      const input = inputs.get(column);
-      if (input && index < preferences.l.length) {
+    inputs.forEach((input, index) => {
+      if (index < preferences.l.length) {
         input.checked = preferences.l[index] === "1";
       }
     });
@@ -624,6 +608,9 @@ els.clearButton.addEventListener("click", () => {
 
 els.customizeEnabled.addEventListener("change", handlePreferenceChange);
 els.useSpecial.addEventListener("change", handlePreferenceChange);
+els.includeHiscoresLink.addEventListener("change", handlePreferenceChange);
+els.includeTempleLink.addEventListener("change", handlePreferenceChange);
+els.includeWomLink.addEventListener("change", handlePreferenceChange);
 els.statGroups.addEventListener("change", (event) => {
   if (!(event.target instanceof HTMLInputElement)) return;
 
@@ -648,10 +635,6 @@ els.statGroups.addEventListener("change", (event) => {
     return;
   }
 
-  if (event.target.dataset.linkColumn) {
-    persistPreferences();
-    renderTable();
-  }
 });
 
 els.copyAll.addEventListener("click", async () => {

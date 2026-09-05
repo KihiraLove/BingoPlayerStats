@@ -24,7 +24,7 @@ The compact output contains:
 
 The **Use special EHP/EHB where applicable** option keeps the same EHP/EHB columns but substitutes the applicable special efficiency value for accounts that have one. It does not add separate Special EHP or Special EHB columns.
 
-Enable **stat customisation** to add individual skill levels, skill XP, bosses, activities and optional profile links. Skill/boss/activity stats are selected by default; HiScores, TempleOSRS and Wise Old Man links are separate options and default to off.
+HiScores, TempleOSRS and Wise Old Man profile links are independent output options and default to off. Enable **stat customisation** separately to add individual skill levels, skill XP, bosses and activities; those detailed stat options are selected by default.
 
 Spreadsheet output intentionally omits Build, Source, Status, League Points and Grid Points. Activity headings that represent counts/ranks directly (including clues, collections logged, Colosseum glory, Bounty Hunter, PvP Arena, rifts closed, LMS, Lunar Chests and Barrows Chests) have no `Score` suffix. Other boss/activity columns use `KC`.
 

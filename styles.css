@@ -147,16 +147,17 @@ textarea:focus {
   line-height: 1.45;
 }
 
-.special-checkbox {
+.regular-options {
+  display: grid;
+  justify-items: start;
+  gap: 9px;
   margin-top: 14px;
-  margin-left: 0;
-  color: var(--text);
 }
 
-.customize-toggle {
-  display: flex;
+.regular-option {
   width: fit-content;
-  margin: 9px 0 0;
+  margin: 0;
+  color: var(--text);
 }
 
 .tooltip-target {
@@ -523,8 +524,8 @@ footer p { margin: 0; }
   .page-shell { width: min(100% - 20px, 1500px); padding-top: 24px; }
   .hero, .section-heading, .customize-heading { align-items: stretch; flex-direction: column; }
   .checkbox { width: 100%; margin: 2px 0 0; }
-  .special-checkbox { margin-top: 14px; }
-  .customize-toggle { width: 100%; margin-top: 9px; }
+  .regular-options { justify-items: stretch; }
+  .regular-option { width: 100%; margin: 0; }
   .results-heading { padding: 0 14px; }
   .toolbar, .table-help { padding-left: 14px; padding-right: 14px; }
   footer { align-items: flex-start; flex-direction: column; }
