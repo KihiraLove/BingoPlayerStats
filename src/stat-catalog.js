@@ -168,9 +168,9 @@ export const STAT_GROUPS = [
 ];
 
 export const LINK_OPTIONS = [
-  { column: "HiScores Link", label: "HiScores page" },
-  { column: "TempleOSRS Link", label: "TempleOSRS page" },
-  { column: "WOM Link", label: "WOM page" }
+  { column: "HiScores", label: "HiScores page" },
+  { column: "TempleOSRS", label: "TempleOSRS page" },
+  { column: "WOM", label: "WOM page" }
 ];
 
 export const SELECTABLE_LINK_COLUMNS = LINK_OPTIONS.map((option) => option.column);
