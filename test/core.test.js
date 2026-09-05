@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { algorithms } from "../src/vendor/wom/index.js";
+import { hasProgressedBeyondSnapshot } from "../src/data.js";
 import {
   activityColumnName,
   isOmittedActivity
@@ -13,6 +14,7 @@ import {
   xpToLevel
 } from "../src/utils.js";
 import {
+  buildPlayerLinks,
   computeTempleResult,
   outputValue
 } from "../src/metrics.js";
@@ -120,4 +122,98 @@ test("XP converts to standard OSRS skill levels", () => {
   assert.equal(xpToLevel(83), 2);
   assert.equal(xpToLevel(13_034_431), 99);
   assert.equal(xpToLevel(200_000_000), 99);
+});
+
+
+test("HCIM snapshot comparison detects post-death progression", () => {
+  const frozen = {
+    skills: {
+      overall: { xp: 10_000 },
+      attack: { xp: 1_000 }
+    },
+    activities: {
+      zulrah: { score: 5 }
+    }
+  };
+
+  assert.equal(
+    hasProgressedBeyondSnapshot(
+      {
+        skills: {
+          overall: { xp: 10_000 },
+          attack: { xp: 1_000 }
+        },
+        activities: {
+          zulrah: { score: 5 }
+        }
+      },
+      frozen
+    ),
+    false
+  );
+
+  assert.equal(
+    hasProgressedBeyondSnapshot(
+      {
+        skills: {
+          overall: { xp: 10_001 },
+          attack: { xp: 1_001 }
+        },
+        activities: {
+          zulrah: { score: 5 }
+        }
+      },
+      frozen
+    ),
+    true
+  );
+
+  assert.equal(
+    hasProgressedBeyondSnapshot(
+      {
+        skills: {
+          overall: { xp: 10_000 },
+          attack: { xp: 1_000 }
+        },
+        activities: {
+          zulrah: { score: 6 }
+        }
+      },
+      frozen
+    ),
+    true
+  );
+
+  assert.equal(
+    hasProgressedBeyondSnapshot(
+      {
+        skills: {
+          overall: { xp: 10_000 },
+          attack: { xp: 1_000 },
+          sailing: { xp: 500 }
+        },
+        activities: {
+          zulrah: { score: 5 }
+        }
+      },
+      frozen
+    ),
+    true
+  );
+});
+
+test("player profile links use the requested username", () => {
+  const links = buildPlayerLinks("Iron Player");
+  assert.equal(
+    links["HiScores Link"],
+    "https://secure.runescape.com/m=hiscore_oldschool/hiscorepersonal?user1=Iron%20Player"
+  );
+  assert.equal(
+    links["TempleOSRS Link"],
+    "https://templeosrs.com/player/overview.php?duration=365days&player=Iron%20Player"
+  );
+  assert.equal(
+    links["WOM Link"],
+    "https://wiseoldman.net/players/Iron%20Player"
+  );
 });

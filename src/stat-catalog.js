@@ -167,6 +167,14 @@ export const STAT_GROUPS = [
   { id: "activities", label: "Activities", columns: ACTIVITY_COLUMNS }
 ];
 
+export const LINK_OPTIONS = [
+  { column: "HiScores Link", label: "HiScores page" },
+  { column: "TempleOSRS Link", label: "TempleOSRS page" },
+  { column: "WOM Link", label: "WOM page" }
+];
+
+export const SELECTABLE_LINK_COLUMNS = LINK_OPTIONS.map((option) => option.column);
+
 export const SELECTABLE_STAT_COLUMNS = [
   ...SKILL_LEVEL_COLUMNS,
   ...SKILL_XP_COLUMNS,

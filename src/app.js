@@ -11,6 +11,8 @@ import {
   VIEW_COLUMNS
 } from "./metrics.js";
 import {
+  LINK_OPTIONS,
+  SELECTABLE_LINK_COLUMNS,
   SELECTABLE_STAT_COLUMNS,
   SKILL_STAT_ROWS,
   STAT_GROUPS
@@ -21,6 +23,7 @@ const CONSENT_COOKIE = "bps_cookie_consent";
 const CONFIG_COOKIE = "bps_output_config";
 const CONFIG_VERSION = 1;
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
+const LINK_COLUMN_SET = new Set(SELECTABLE_LINK_COLUMNS);
 
 const els = {
   usernames: document.querySelector("#usernames"),
@@ -72,13 +75,13 @@ function setProgress(done, total, current = "") {
     : done + "/" + total + " complete" + (current ? " — " + current : "");
 }
 
-function makeStatCheckbox(column, text, className = "checkbox stat-option") {
+function makeStatCheckbox(column, text, className = "checkbox stat-option", checked = true) {
   const label = document.createElement("label");
   label.className = className;
 
   const input = document.createElement("input");
   input.type = "checkbox";
-  input.checked = true;
+  input.checked = checked;
   input.dataset.statColumn = column;
 
   const caption = document.createElement("span");
@@ -189,6 +192,27 @@ function renderStatOptions() {
     els.statGroups.appendChild(section);
   }
 
+  const linksSection = document.createElement("section");
+  linksSection.className = "stat-group links-group";
+
+  const linksHeading = document.createElement("h3");
+  linksHeading.textContent = "Links";
+  linksSection.appendChild(linksHeading);
+
+  const linkOptions = document.createElement("div");
+  linkOptions.className = "stat-options";
+
+  for (const option of LINK_OPTIONS) {
+    const label = makeStatCheckbox(option.column, option.label, "checkbox stat-option", false);
+    const input = label.querySelector("input");
+    delete input.dataset.statColumn;
+    input.dataset.linkColumn = option.column;
+    linkOptions.appendChild(label);
+  }
+
+  linksSection.appendChild(linkOptions);
+  els.statGroups.appendChild(linksSection);
+
   updateGroupToggles();
 }
 
@@ -201,9 +225,18 @@ function selectedStatColumns() {
   return SELECTABLE_STAT_COLUMNS.filter((column) => selected.has(column));
 }
 
+function selectedLinkColumns() {
+  const selected = new Set(
+    Array.from(els.statGroups.querySelectorAll("input[data-link-column]:checked"))
+      .map((input) => input.dataset.linkColumn)
+  );
+
+  return SELECTABLE_LINK_COLUMNS.filter((column) => selected.has(column));
+}
+
 function displayedColumns() {
   if (!els.customizeEnabled.checked) return VIEW_COLUMNS;
-  return [...VIEW_COLUMNS, ...selectedStatColumns()];
+  return [...VIEW_COLUMNS, ...selectedLinkColumns(), ...selectedStatColumns()];
 }
 
 function readCookie(name) {
@@ -243,7 +276,10 @@ function currentPreferences() {
     v: CONFIG_VERSION,
     c: els.customizeEnabled.checked ? 1 : 0,
     s: els.useSpecial.checked ? 1 : 0,
-    b: SELECTABLE_STAT_COLUMNS.map((column) => checked.has(column) ? "1" : "0").join("")
+    b: SELECTABLE_STAT_COLUMNS.map((column) => checked.has(column) ? "1" : "0").join(""),
+    l: SELECTABLE_LINK_COLUMNS.map((column) =>
+      Boolean(els.statGroups.querySelector(`input[data-link-column="${column}"]:checked`)) ? "1" : "0"
+    ).join("")
   };
 }
 
@@ -263,6 +299,20 @@ function applyPreferences(preferences) {
       const input = inputs.get(column);
       if (input && index < preferences.b.length) {
         input.checked = preferences.b[index] !== "0";
+      }
+    });
+  }
+
+  if (typeof preferences.l === "string") {
+    const inputs = new Map(
+      Array.from(els.statGroups.querySelectorAll("input[data-link-column]"))
+        .map((input) => [input.dataset.linkColumn, input])
+    );
+
+    SELECTABLE_LINK_COLUMNS.forEach((column, index) => {
+      const input = inputs.get(column);
+      if (input && index < preferences.l.length) {
+        input.checked = preferences.l[index] === "1";
       }
     });
   }
@@ -386,7 +436,19 @@ function renderTable() {
     columns.forEach((column) => {
       const td = document.createElement("td");
       const value = rowValue(result, column);
-      td.textContent = value === null || value === undefined ? "" : String(value);
+
+      if (LINK_COLUMN_SET.has(column) && value) {
+        const link = document.createElement("a");
+        link.className = "result-link";
+        link.href = String(value);
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.textContent = "Open";
+        td.appendChild(link);
+      } else {
+        td.textContent = value === null || value === undefined ? "" : String(value);
+      }
+
       tr.appendChild(td);
     });
     tbody.appendChild(tr);
@@ -493,19 +555,30 @@ async function handleFetch() {
   renderTable();
 
   let completed = 0;
+  const activeLookups = new Map();
+
+  function refreshProgress() {
+    const activeIndexes = Array.from(activeLookups.keys()).sort((a, b) => a - b);
+    const current = activeIndexes.length > 0
+      ? activeLookups.get(activeIndexes[0])
+      : "";
+    setProgress(completed, usernames.length, current);
+  }
 
   try {
     await runPool(
       usernames,
       2,
-      async (username) => {
-        setProgress(completed, usernames.length, username);
+      async (username, index) => {
+        activeLookups.set(index, username);
+        refreshProgress();
         return lookupPlayer(username);
       },
       (result, index) => {
+        activeLookups.delete(index);
         state.results[index] = result;
         completed += 1;
-        setProgress(completed, usernames.length, result.summary.Username || usernames[index]);
+        refreshProgress();
         renderTable();
       }
     );
@@ -570,6 +643,12 @@ els.statGroups.addEventListener("change", (event) => {
 
   if (event.target.dataset.statColumn) {
     updateGroupToggles();
+    persistPreferences();
+    renderTable();
+    return;
+  }
+
+  if (event.target.dataset.linkColumn) {
     persistPreferences();
     renderTable();
   }

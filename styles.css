@@ -532,3 +532,14 @@ footer p { margin: 0; }
   .cookie-actions { width: 100%; }
   .cookie-actions button { flex: 1 1 0; }
 }
+
+
+.result-link {
+  color: var(--accent-strong);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.result-link:hover {
+  color: var(--text);
+}

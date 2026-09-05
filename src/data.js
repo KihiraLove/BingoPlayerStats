@@ -123,14 +123,47 @@ export async function fetchHiscore(username, endpointKey = "normal") {
   };
 }
 
-async function isOnHiscore(username, endpointKey) {
+async function fetchHiscoreIfPresent(username, endpointKey) {
   try {
-    await fetchHiscore(username, endpointKey);
-    return true;
+    return await fetchHiscore(username, endpointKey);
   } catch (error) {
-    if (error instanceof HttpError && error.status === 404) return false;
-    return false;
+    if (error instanceof HttpError && error.status === 404) return null;
+    return null;
   }
+}
+
+async function isOnHiscore(username, endpointKey) {
+  return Boolean(await fetchHiscoreIfPresent(username, endpointKey));
+}
+
+export function hasProgressedBeyondSnapshot(current, snapshot) {
+  if (!current || !snapshot) return false;
+
+  for (const [key, currentSkill] of Object.entries(current.skills || {})) {
+    const snapshotSkill = snapshot.skills?.[key];
+    if (!snapshotSkill) {
+      if (toNumber(currentSkill.xp, 0) > 0) return true;
+      continue;
+    }
+
+    if (toNumber(currentSkill.xp, 0) > toNumber(snapshotSkill.xp, 0)) {
+      return true;
+    }
+  }
+
+  for (const [key, currentActivity] of Object.entries(current.activities || {})) {
+    const snapshotActivity = snapshot.activities?.[key];
+    if (!snapshotActivity) {
+      if (toNumber(currentActivity.score, 0) > 0) return true;
+      continue;
+    }
+
+    if (toNumber(currentActivity.score, 0) > toNumber(snapshotActivity.score, 0)) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 function looksLevel3(skills) {
@@ -157,26 +190,35 @@ export async function classifyFromHiscores(username, hiscore, resolveGim = true)
   if (await isOnHiscore(username, "ultimate")) {
     classification.mode = "ultimate";
     classification.modeLabel = "UIM";
-  } else if (await isOnHiscore(username, "hardcore")) {
-    classification.mode = "hardcore";
-    classification.modeLabel = "HCIM";
-  } else if (await isOnHiscore(username, "ironman")) {
-    classification.mode = "ironman";
-    classification.modeLabel = "IM";
-  } else if (resolveGim) {
-    try {
-      const info = await fetchTempleInfo(username);
-      classification.templeInfo = info;
+  } else {
+    const hardcoreSnapshot = await fetchHiscoreIfPresent(username, "hardcore");
 
-      if (toNumber(info.gim, 0) !== 0) {
-        classification.mode = "gim";
-        classification.modeLabel = deriveTempleGamemode(info.gameMode, info.gim);
-        classification.warning = "GIM special metrics use the local Ironman efficiency profile.";
+    if (hardcoreSnapshot) {
+      if (hasProgressedBeyondSnapshot(hiscore, hardcoreSnapshot)) {
+        classification.mode = "ironman";
+        classification.modeLabel = "IM";
+      } else {
+        classification.mode = "hardcore";
+        classification.modeLabel = "HCIM";
       }
-    } catch (_error) {
-      classification.mode = "main";
-      classification.modeLabel = "Main";
-      classification.warning = "TempleOSRS could not resolve whether this main-board account is GIM; defaulted to Main.";
+    } else if (await isOnHiscore(username, "ironman")) {
+      classification.mode = "ironman";
+      classification.modeLabel = "IM";
+    } else if (resolveGim) {
+      try {
+        const info = await fetchTempleInfo(username);
+        classification.templeInfo = info;
+
+        if (toNumber(info.gim, 0) !== 0) {
+          classification.mode = "gim";
+          classification.modeLabel = deriveTempleGamemode(info.gameMode, info.gim);
+          classification.warning = "GIM special metrics use the local Ironman efficiency profile.";
+        }
+      } catch (_error) {
+        classification.mode = "main";
+        classification.modeLabel = "Main";
+        classification.warning = "TempleOSRS could not resolve whether this main-board account is GIM; defaulted to Main.";
+      }
     }
   }
 

@@ -7,7 +7,7 @@ Paste one RuneScape name per line (or paste a column directly from Excel/Google 
 ## Data flow
 
 1. **Primary:** official OSRS HiScores, requested through the OSRS Wiki CORS proxy so the static GitHub Pages app can access Jagex's public endpoint from a browser.
-2. **Account classification:** official specialist HiScore boards are probed for level-3, 1-defence, UIM, HCIM and IM classification. TempleOSRS player info is always used to identify GIM accounts where possible. If the gamemode cannot be resolved, the app defaults to **Main**.
+2. **Account classification:** official specialist HiScore boards are probed for level-3, 1-defence, UIM, HCIM and IM classification. HCIM membership is validated against the current account stats so dead HCIM accounts that have progressed beyond their frozen Hardcore snapshot are classified as regular Ironman. TempleOSRS player info is always used to identify GIM accounts where possible. If the gamemode cannot be resolved, the app defaults to **Main**.
 3. **Local efficiency metrics:** EHP/EHB are calculated in the browser. The efficiency algorithm and rate configurations are adapted from the MIT-licensed Wise Old Man project; see `THIRD_PARTY_NOTICES.md`.
 4. **Fallback:** if the official HiScores lookup fails, TempleOSRS is queried. If Temple reports the player was last checked more than one hour ago, the app requests a datapoint refresh before loading Temple stats.
 
@@ -24,11 +24,11 @@ The compact output contains:
 
 The **Use special EHP/EHB where applicable** option keeps the same EHP/EHB columns but substitutes the applicable special efficiency value for accounts that have one. It does not add separate Special EHP or Special EHB columns.
 
-Enable **stat customisation** to add individual skill levels, skill XP, bosses and activities. All optional stats are selected by default when customisation is enabled.
+Enable **stat customisation** to add individual skill levels, skill XP, bosses, activities and optional profile links. Skill/boss/activity stats are selected by default; HiScores, TempleOSRS and Wise Old Man links are separate options and default to off.
 
 Spreadsheet output intentionally omits Build, Source, Status, League Points and Grid Points. Activity headings that represent counts/ranks directly (including clues, collections logged, Colosseum glory, Bounty Hunter, PvP Arena, rifts closed, LMS, Lunar Chests and Barrows Chests) have no `Score` suffix. Other boss/activity columns use `KC`.
 
-Use **Copy summary**, **Copy configured output**, **Download summary CSV**, or **Download configured CSV** for spreadsheet workflows.
+Use **Copy** or **Download CSV** to export the currently configured output.
 
 ## Preferences and cookies
 
@@ -37,7 +37,7 @@ The site has no backend and does not store usernames or player stats.
 With consent, it stores the output configuration in a functional browser cookie so the following settings can be restored on the next visit:
 
 - whether stat customisation is enabled;
-- which optional stat columns are selected;
+- which optional stat and profile-link columns are selected;
 - whether special EHP/EHB substitution is enabled.
 
 The consent choice itself is stored separately so the banner does not need to be shown on every visit. Declining removes the configuration cookie.

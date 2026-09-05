@@ -26,6 +26,15 @@ export const EXPORT_SUMMARY_COLUMNS = [
 
 export const VIEW_COLUMNS = [...EXPORT_SUMMARY_COLUMNS];
 
+export function buildPlayerLinks(username) {
+  const encoded = encodeURIComponent(String(username || "").trim());
+  return {
+    "HiScores Link": "https://secure.runescape.com/m=hiscore_oldschool/hiscorepersonal?user1=" + encoded,
+    "TempleOSRS Link": "https://templeosrs.com/player/overview.php?duration=365days&player=" + encoded,
+    "WOM Link": "https://wiseoldman.net/players/" + encoded
+  };
+}
+
 function makeExperienceMap(hiscore) {
   return new Map(
     REAL_SKILLS.map((skill) => [skill, Math.max(0, toNumber(hiscore.skills?.[skill]?.xp, 0))])
@@ -263,6 +272,7 @@ export function computeHiscoreResult(username, hiscore, classification) {
       EHB: specialEhb
     },
     raw: buildHiscoreRaw(hiscore),
+    links: buildPlayerLinks(username),
     source: "Jagex HiScores",
     message: classification.warning || "",
     statusLevel: classification.warning ? "warn" : "ok"
@@ -306,6 +316,7 @@ export function computeTempleResult(requestedUsername, fallback) {
       EHB: specialEhb
     },
     raw: buildTempleRaw(stats),
+    links: buildPlayerLinks(fallback.username || requestedUsername),
     source: "TempleOSRS",
     message: statusParts.join(" "),
     statusLevel: fallback.refreshNote && /failed|older|unavailable/i.test(fallback.refreshNote)
@@ -329,6 +340,7 @@ export function makeErrorResult(username, error) {
       EHB: 0
     },
     raw: {},
+    links: buildPlayerLinks(username),
     source: "",
     message: error instanceof Error ? error.message : String(error),
     statusLevel: "error"
@@ -343,6 +355,10 @@ export function outputValue(result, column, useSpecial = false) {
 
   if (Object.prototype.hasOwnProperty.call(result?.summary || {}, column)) {
     return result.summary[column];
+  }
+
+  if (Object.prototype.hasOwnProperty.call(result?.links || {}, column)) {
+    return result.links[column];
   }
 
   return result?.raw?.[column] ?? "";
