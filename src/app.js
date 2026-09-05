@@ -217,7 +217,9 @@ function selectedLinkColumns() {
 
 function displayedColumns() {
   const links = selectedLinkColumns();
-  const stats = els.customizeEnabled.checked ? selectedStatColumns() : [];
+  const stats = els.customizeEnabled.checked
+    ? selectedStatColumns()
+    : SELECTABLE_STAT_COLUMNS;
   return [...VIEW_COLUMNS, ...links, ...stats];
 }
 
