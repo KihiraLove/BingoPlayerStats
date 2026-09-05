@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Bulk OSRS HiScores and efficiency lookup for bingo organisers.">
+  <meta name="description" content="Bulk OSRS player statistics lookup for bingo organisers.">
   <title>Bingo Player Stats</title>
   <link rel="stylesheet" href="./styles.css">
 </head>
@@ -11,9 +11,9 @@
   <main class="page-shell">
     <header class="hero">
       <div>
-        <p class="eyebrow">OSRS BINGO TOOL</p>
-        <h1>Bingo Player Stats</h1>
-        <p class="lede">Paste a roster, fetch public OSRS stats, then copy the result straight into Excel or Google Sheets.</p>
+        <p class="eyebrow">OSRS TOOL FOR BINGOS</p>
+        <h1>Player Stats</h1>
+        <p class="lede">Paste your roster, fetch public OSRS stats, then copy the result straight into Excel or Google Sheets.</p>
       </div>
     </header>
 
@@ -21,7 +21,7 @@
       <div class="section-heading">
         <div>
           <h2 id="players-heading">Players</h2>
-          <p>One username per line. Pasting a spreadsheet column works as-is.</p>
+          <p>One username per line (pasting a spreadsheet column works too).</p>
         </div>
         <span id="player-count" class="counter">0 players</span>
       </div>
@@ -37,8 +37,8 @@
       <section class="customize-panel" aria-labelledby="customize-heading">
         <div class="customize-heading">
           <div>
-            <h2 id="customize-heading">Output configuration</h2>
-            <p>Keep the compact default output, or enable customisation to add individual stats.</p>
+            <h2 id="customize-heading">Customaisation</h2>
+            <p>Enable customisation to choose which stats to add.</p>
           </div>
         </div>
 
@@ -47,7 +47,7 @@
           <span
             class="tooltip-target"
             tabindex="0"
-            data-tooltip="When enabled, the EHP and EHB columns use special values for accounts that have them; other accounts keep normal EHP/EHB. Separate special columns are not added."
+            data-tooltip="When enabled, the EHP and EHB columns use special values for accounts that have them, other accounts keep normal EHP/EHB. Separate special columns are not added."
           >Use special EHP/EHB where applicable</span>
         </label>
 
@@ -57,13 +57,12 @@
         </label>
 
         <div id="custom-options" class="custom-options" hidden>
-          <p class="custom-options-intro">Choose additional spreadsheet columns. Every stat is selected by default.</p>
           <div id="stat-groups" class="stat-groups"></div>
         </div>
       </section>
 
       <div class="controls">
-        <button id="fetch-button" class="primary" type="button">Fetch player stats</button>
+        <button id="fetch-button" class="primary" type="button">Fetch</button>
         <button id="clear-button" class="secondary" type="button">Clear</button>
       </div>
 
@@ -97,13 +96,13 @@
         </table>
       </div>
 
-      <p class="table-help">Tip: copy uses tab-separated values, so pasting into Excel or Google Sheets fills cells automatically.</p>
+      <p class="table-help">Tip: copy uses tab-separated values, pasting into Excel or Google Sheets fills cells automatically.</p>
     </section>
 
     <footer>
       <div class="footer-meta">
-        <p><strong>Primary source:</strong> Jagex OSRS HiScores · TempleOSRS fallback</p>
-        <p>All player data is public. No usernames or player stats are stored by this site.</p>
+        <p><strong>Primary source:</strong> Jagex OSRS HiScores · <strong>Secondary source:</strong> TempleOSRS</p>
+        <p>All player data is public. No data is stored by this site.</p>
       </div>
       <button id="cookie-settings" class="text-button" type="button">Cookie settings</button>
     </footer>
@@ -112,7 +111,7 @@
   <aside id="cookie-consent" class="cookie-banner" role="dialog" aria-labelledby="cookie-title" aria-describedby="cookie-description">
     <div>
       <strong id="cookie-title">Cookie consent</strong>
-      <p id="cookie-description">With your consent, this site saves your output configuration in a functional cookie so your selected stats are restored next time. It does not store usernames or player stats and is not used for tracking. A small consent cookie remembers this choice.</p>
+      <p id="cookie-description">This site saves your configuration in a cookie so your selected stats are restored next time you visit us. It does not store usernames or player stats. We do not collect or sell any data. A small consent cookie remembers this choice.</p>
     </div>
     <div class="cookie-actions">
       <button id="cookie-accept" class="primary" type="button">Accept config cookies</button>

@@ -2,19 +2,13 @@
 
 ## Wise Old Man
 
-The local EHP/EHB calculation code and efficiency rate configuration files under src/vendor/wom/ are adapted from the Wise Old Man project:
+EHP/EHB calculations and efficiency rates are adapted from [Wise Old Man](https://github.com/wise-old-man/wise-old-man).
 
-- Project: Wise Old Man
-- Repository: https://github.com/wise-old-man/wise-old-man
-- License: MIT
+Wise Old Man is not affiliated with this project. Rate tables change over time, rates on our website may not be the same as on WOM.
 
-The vendored code has been converted from TypeScript to browser-native JavaScript and reduced to the pieces needed by this project.
+## Jagex
 
-Wise Old Man is not affiliated with this project. Rate tables change over time; the vendored snapshot should be periodically refreshed from upstream.
-
-## Jagex / Old School RuneScape
-
-Old School RuneScape and RuneScape are trademarks of Jagex Limited. This project is an unofficial fan utility and is not endorsed by or affiliated with Jagex.
+Old School RuneScape and RuneScape are trademarks of Jagex Ltd. This is an unofficial fan project, and is not endorsed by or affiliated with Jagex.
 
 ## Old School RuneScape Wiki
 

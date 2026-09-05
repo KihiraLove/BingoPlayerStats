@@ -516,7 +516,7 @@ async function handleFetch() {
         errors +
           " player" +
           (errors === 1 ? "" : "s") +
-          " could not be loaded; their stat cells are blank.",
+          " could not be loaded, their stat cells are blank.",
         "error"
       );
     }
