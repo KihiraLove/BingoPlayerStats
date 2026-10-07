@@ -1,5 +1,8 @@
 # Bingo Player Stats
 
+[![Deploy GitHub Pages](https://github.com/KihiraLove/BingoPlayerStats/actions/workflows/pages.yml/badge.svg)](https://github.com/KihiraLove/BingoPlayerStats/actions/workflows/pages.yml)
+[![Ko-fi](https://img.shields.io/badge/Ko--fi-Support%20me-29ABE0?logo=ko-fi&logoColor=white)](https://ko-fi.com/KihiraLove)
+
 A browser-only Old School RuneScape player stat fetcher for bingo organisers.
 
 Paste one RuneScape name per line (or paste a column directly from Excel/Google Sheets), fetch the players, then copy the resulting table back into a spreadsheet as TSV or download it as CSV.
