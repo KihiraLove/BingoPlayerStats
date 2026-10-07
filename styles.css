@@ -42,7 +42,7 @@ button:disabled { cursor: wait; opacity: 0.65; }
   padding: 0 4px 24px;
 }
 
-.kofi-banner {
+.hero .kofi-banner {
   display: inline-flex;
   align-items: center;
   gap: 9px;
@@ -61,8 +61,8 @@ button:disabled { cursor: wait; opacity: 0.65; }
   transition: transform 120ms ease-out, filter 120ms ease-out;
 }
 
-.kofi-banner:hover,
-.kofi-banner:focus-visible {
+.hero .kofi-banner:hover,
+.hero .hero .kofi-banner:focus-visible {
   transform: translateY(-1px);
   filter: brightness(1.06);
 }
@@ -72,10 +72,18 @@ button:disabled { cursor: wait; opacity: 0.65; }
   outline-offset: 3px;
 }
 
-.kofi-banner img {
+.hero .kofi-banner img {
+  display: block;
   width: 24px;
   height: 24px;
+  max-width: 24px;
+  max-height: 24px;
+  flex: 0 0 24px;
   object-fit: contain;
+}
+
+.hero .kofi-banner-label {
+  display: inline-block;
 }
 
 .eyebrow {
@@ -565,7 +573,7 @@ footer p { margin: 0; }
 @media (max-width: 760px) {
   .page-shell { width: min(100% - 20px, 1500px); padding-top: 24px; }
   .hero, .section-heading, .customize-heading { align-items: stretch; flex-direction: column; }
-  .kofi-banner { align-self: flex-start; margin-left: 0; }
+  .hero .kofi-banner { align-self: flex-start; margin-left: 0; }
   .checkbox { width: 100%; margin: 2px 0 0; }
   .regular-options { justify-items: stretch; }
   .regular-option { width: 100%; margin: 0; }
